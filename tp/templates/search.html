@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>SEARCH</title>
+</head>
+<body>
+    <center>
+
+        {% if not_passed %}
+            <h1 style="padding-top: 50px;">{{msg}} :/</h1>
+        {% else %}    
+            {% if products_returned %}
+                
+                    <h1>search result for " {{searched}} " : </h1>
+                    <div class="container mt-5">
+                        
+                        <div class="row">
+                            {% for product in products_returned %}
+                                <div class="col-md-4 mb-4">
+                                    <div class="card shadow-sm">
+                                        {% if product.quantite > 0 %}
+                                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ product.name }}</h5>
+                                                <p class="card-text">price : {{product.price}}</p>
+                                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
+                                            </div>
+                                        {% else %}
+                                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; opacity: 0.3;">
+                                            <div class="card-body">
+                                                <h2>OUT OF STOCK.</h2>
+                                                <h5 class="card-title">{{ product.name }}</h5>
+                                                <p class="card-text">price : {{product.price}}</p>
+                                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
+                                            </div>
+                                        {% endif %}    
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                
+            {% endif %}
+        {% endif %}    
+    </center>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"> </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>add</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #007BFF;">
+        <div class="container-fluid" >
+          <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'home'%}" style="color: white;">Home</a>
+              </li>
+            </ul>
+            <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
+              {% csrf_token %}
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
+              
+              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
+              <style>
+                .custom-search-btn {
+                    background-color:white ;
+                    color: #007BFF ;
+                    border: 2px solid #007BFF ;
+                    /*transition: 0.3s ease-in-out;*/
+                }
+            
+                .custom-search-btn:hover {
+                    background-color: #007BFF ;
+                    color: white ;
+                }
+            </style>
+            </form>
+          </div>
+        </div>
+    </nav>
+
+    <center>
+        <h1 style="padding-top: 20px;">add a product</h1>
+
+        <div class="card" style="width: 25rem; padding-top: 20px;">
+            <div class="card-body">
+              <h4 class="card-title">ADD</h4>
+                <form method="POST">
+                    {% csrf_token %}
+    
+                    {{form.as_p}}
+                    <input type="submit" value="submit" class="btn btn-success">
+                    <a href="{% url 'home'%}" class="btn btn-primary">Go back</a>
+                </form>
+              
+              {{message}}
+            </div>
+        </div>
+      
+    </center>
+
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"> </script>
+</body>
+</html>
