@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .payment-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        #card-element {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+        }
+
+        #submit-button {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #007BFF;">
+        <div class="container-fluid" >
+          <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'home'%}" style="color: white;">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'add' %}" style="color: white;">ADD</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'pannier' %}" style="color: white;">pannier</a>
+              </li>
+            </ul>
+            <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
+              {% csrf_token %}
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
+              
+              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
+              <style>
+                .custom-search-btn {
+                    background-color:white ;
+                    color: #007BFF ;
+                    border: 2px solid #007BFF ;
+                    /*transition: 0.3s ease-in-out;*/
+                }
+            
+                .custom-search-btn:hover {
+                    background-color: #007BFF ;
+                    color: white ;
+                }
+            </style>
+            </form>
+          </div>
+        </div>
+    </nav>
+
+    <div class="payment-container">
+        <h2>Complete Your Payment</h2>
+        <form id="payment-form">
+            <label for="card-element">Enter your card details:</label>
+            <div id="card-element" class="form-control"></div>
+            <button id="submit-button" class="btn btn-primary">Pay Now</button>
+            <div id="error-message" role="alert"></div>
+        </form>
+    </div>
+
+    <script>
+        const stripe = Stripe("{{ stripe_publishable_key }}");  // Use your publishable key
+        const elements = stripe.elements();
+        const cardElement = elements.create("card");
+        cardElement.mount("#card-element");
+
+        const form = document.getElementById("payment-form");
+        const submitButton = document.getElementById("submit-button");
+        const errorMessage = document.getElementById("error-message");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            submitButton.disabled = true;
+
+            const { error, paymentIntent } = await stripe.confirmCardPayment("{{ client_secret }}", {
+                payment_method: { card: cardElement },
+            });
+
+            if (error) {
+                errorMessage.textContent = error.message;
+                submitButton.disabled = false;
+            } else {
+                if (paymentIntent.status === "succeeded") {
+                    alert("Payment successful!");
+                    window.location.href = "{% url 'home' %}"; // Redirect after success
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

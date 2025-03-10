@@ -70,9 +70,56 @@
             {% endfor %}
         </div>
         {% if total != 0%}
-            <a href="#" style="padding-left: 1000px;" ><button type="button" class="btn btn-outline-primary">confirme sale</button></a>
+            <form method="POST" action="{% url 'paiement' total %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary">Confirm Sale</button>
+            </form>
+            <!--<a href="{% url 'paiement' total %}" style="padding-left: 1000px;" ><button type="button" class="btn btn-outline-primary">confirme sale</button></a>-->
         {% endif %}
     </div>
+
+    <div id="stripe-payment-form" style="display: none;">
+        <form id="payment-form">
+            <div id="card-element">
+                <!-- Stripe Card Element will be inserted here -->
+            </div>
+            <button id="submit-button">Pay Now</button>
+            <div id="error-message" role="alert"></div>
+        </form>
+    </div>
+
+    <script>
+        const stripe = Stripe('{{ stripe_publishable_key }}'); // Use the publishable key
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit-button');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            submitButton.disabled = true;
+
+            const { error, paymentIntent } = await stripe.confirmCardPayment('{{ client_secret }}', {
+                payment_method: {
+                    card: cardElement,
+                },
+            });
+
+            if (error) {
+                errorMessage.textContent = error.message;
+                submitButton.disabled = false;
+            } else {
+                if (paymentIntent.status === 'succeeded') {
+                    alert('Payment successful!');
+                    // Redirect or show a success message
+                }
+            }
+        });
+    </script>
+
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"> </script>
 </body>
