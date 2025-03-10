@@ -9,6 +9,10 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 # Create your views here.
 
+def auth(request):
+    return render(request , 'auth.html')
+
+
 def home(request):
     products = product.objects.all()
     return render(request , 'home.html' , {'products' : products})
@@ -105,7 +109,7 @@ def payment_page(request , total):
             for item in product_list:
                 price += item.price
             price = int(price)
-            generate_bill_pdf(product_list , price , filename=r"D:\s2\E-COM\bill.pdf")
+            generate_bill_pdf(product_list , price , filename=r"D:\Programmig\TPS2\E-commerce\bill.pdf")
             product_list.clear()
             return render(request, 'payment.html', {
                 'client_secret': intent.client_secret,
@@ -119,7 +123,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
-def generate_bill_pdf(product_list, total_amount, filename=r"D:\s2\E-COM\bill1.pdf"):
+def generate_bill_pdf(product_list, total_amount, filename=r"D:\Programmig\TPS2\E-commerce\bill1.pdf"):
     pdf = canvas.Canvas(filename, pagesize=letter)
     pdf.setFont("Helvetica", 12)
 
