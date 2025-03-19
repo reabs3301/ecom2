@@ -3,6 +3,7 @@ from django.shortcuts import render , redirect
 from .models import product, Client, acheter # Import the Product model
 from .forms import  productform
 from django.conf import settings
+from django.urls import resolve
 
 import stripe
 from reportlab.lib.pagesizes import letter
@@ -14,19 +15,22 @@ from PIL import Image
 
 authenticated_users = []
 
-def authenticate():
-	def wrapper(func):
-			
-		def wrapper(request, *args, **kwargs):
-			try:
-				if request.session['username'] in authenticated_users:
-					return func(request, *args, **kwargs)
-				else:
-					return login_page(request, invalid_credentials=True) 
-			except:
-				return login_page(request, invalid_credentials=True) 
-		return wrapper
-	return wrapper
+def authenticate(get_response):
+    exception_urls = ['welcome', 'login', 'signup', 'login_page', 'signup_page',]
+    def wrapper(request):
+        print('authenticate middleware')
+        print(authenticated_users)
+        if resolve(request.path_info).url_name in exception_urls:
+            return get_response(request)
+        try:
+            if request.session['username'] in authenticated_users:
+                return get_response(request)
+            else:
+                return login_page(request, invalid_credentials=True) 
+        except:
+            return login_page(request, invalid_credentials=True) 
+    return wrapper
+
 
 
 # views
@@ -34,6 +38,10 @@ def authenticate():
 def welcome(request):
     image = r'/media/background.jpg'
     return render(request , 'welcome.html' , {'image' : image})
+
+def disconnect_view(request):
+    authenticated_users.remove(request.session['username'])
+    return redirect('welcome')
 
 
 def login_signup_page(request, args):
@@ -46,7 +54,7 @@ def signup_page(request, username_exists=False):
      return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
 
 
-@authenticate()
+
 def home_view(request):
 
     products = product.objects.all()
