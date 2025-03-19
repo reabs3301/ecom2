@@ -7,8 +7,11 @@ from django.conf import settings
 urlpatterns = [
    path('',views.welcome , name = 'welcome'),
    #path('',views.home , name = 'home'),
-   path('login/', views.login_user, name='login'),
-   path('signup/', views.signup_user, name='signup'),
+   path('login_page/', views.login_page_view, name='login_page'),
+   path('signup_page/', views.signup_page_view, name='signup_page'),
+   path('login/', views.login_view, name='login'),
+   path('signup/', views.signup_view, name='signup'),
+
    path('detail/<int:prod_id>/<int:quantite>/' , views.details , name='detail'),
    path('get/<int:prod_id>/' , views.decrease , name='get'),
    path('search/', views.searching , name='search'),

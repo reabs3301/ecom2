@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
+from django.contrib.auth import authenticate
 from .models import product,client, acheter # Import the Product model
 from .forms import  productform
 from django.conf import settings
@@ -16,11 +17,28 @@ def welcome(request):
     return render(request , 'welcome.html' , {'image' : image})
 
 
-def login_page(request):
-    return render(request, 'login.html')
+def login_page_view(request):
+    return render(request, 'login.html', {"type": "login"})
 
-def signup_page(request):
-    return render(request, 'login.html')
+def signup_page_view(request):
+    return render(request, 'login.html', {"type": "signup"})
+
+def login_view(request):
+    print('login view')
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        return render(request , 'home.html')
+
+    print('wrong credentials')
+    return login_page_view(request)
+
+def signup_view(request):
+    print('signup view')
+    return login_page_view(request)
+
+
 
 def home(request):
     products = product.objects.all()

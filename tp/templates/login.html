@@ -52,18 +52,34 @@
     <h2 style="color: whitesmoke; ">Welcome back</h2>
 
     <div class="login-card">
-        <h3 class="text-center">Log in</h3>
-        <form>
+        <h3 class="text-center">
+            {% if type == 'login' %}
+                Log in
+            {% else %}
+                Sign up
+            {% endif %}
+        </h3>
+
+        <form method="POST">
             {% csrf_token %}
             <div class="mb-3">
                 <label class="form-label">Username or Email</label>
-                <input type="email" class="form-control" placeholder="Enter your email">
+                <input name="username" class="form-control" placeholder="Enter your email">
             </div>
             <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control" placeholder="Enter your password">
+                <input name="password" type="password" class="form-control" placeholder="Enter your password">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Submit</button>
+            {% if type == 'signup' %}
+            <label class="form-label">Role</label>
+            <div class="mb-3" style="display: flex; justify-content: space-around;">
+                <div><input name="role" type="radio">Client</input></div>
+                <div><input name="role" type="radio">Admin</input></div>
+            </div>
+            {% endif %}
+
+            <button type="submit" formaction="{% url type %}" class="btn btn-primary w-100">Submit</button>
+        
         </form>
     </div>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
