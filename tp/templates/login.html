@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>Log-in</title>
+
+    <style>
+        body {
+            background: linear-gradient(to right, #081B33, #0F4473, #1F6BA5, #5AA9E6);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            gap: 50px; /* Space between card and text */
+        }
+
+        .login-card {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.15); 
+            padding: 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px); 
+            color: white;
+            position: relative;
+            top: -30px; 
+           
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-primary {
+            background: #1F6BA5;
+            border: none;
+        }
+ 
+    </style>
+</head>
+<body>
+    <h2 style="color: whitesmoke; ">Welcome back</h2>
+
+    <div class="login-card">
+        <h3 class="text-center">Log in</h3>
+        <form>
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Username or Email</label>
+                <input type="email" class="form-control" placeholder="Enter your email">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Submit</button>
+        </form>
+    </div>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
