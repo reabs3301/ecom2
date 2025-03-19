@@ -13,10 +13,24 @@ class product(models.Model):
     quantite = models.IntegerField()
 
 
-class client(models.Model):
+class Client(models.Model):
     id = models.AutoField(primary_key=True)
-    user_name = models.CharField(max_length=50)
-    user_password = models.CharField(max_length=50 )
+    username = models.CharField(max_length=50, unique=True)
+    password = models.CharField(max_length=50)
+
+    @staticmethod
+    def create(username, password):
+        client = Client.objects.create(username=username, password=password)
+        client.save()
+        return client
+    
+    @staticmethod
+    def get_by_username(username):
+        try:
+            return Client.objects.get(username=username)
+        except:
+            return None
+        
 
 class acheter(models.Model):
     id = models.AutoField(primary_key=True)

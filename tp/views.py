@@ -1,48 +1,98 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
-from django.contrib.auth import authenticate
-from .models import product,client, acheter # Import the Product model
+from .models import product, Client, acheter # Import the Product model
 from .forms import  productform
 from django.conf import settings
+
 import stripe
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from PIL import Image
-# Create your views here.
 
+# decorators 
+
+authenticated_users = []
+
+def authenticate():
+	def wrapper(func):
+			
+		def wrapper(request, *args, **kwargs):
+			try:
+				if request.session['username'] in authenticated_users:
+					return func(request, *args, **kwargs)
+				else:
+					return login_page(request, invalid_credentials=True) 
+			except:
+				return login_page(request, invalid_credentials=True) 
+		return wrapper
+	return wrapper
+
+
+# views
 
 def welcome(request):
     image = r'/media/background.jpg'
     return render(request , 'welcome.html' , {'image' : image})
 
 
+def login_signup_page(request, args):
+    return render(request, 'login.html', args)
+
+def login_page(request, invalid_credentials=False):
+    return login_signup_page(request, {'type': 'login', 'invalid_credentials': invalid_credentials})
+
+def signup_page(request, username_exists=False):
+     return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
+
+
+@authenticate()
+def home_view(request):
+
+    products = product.objects.all()
+    return render(request , 'home.html' , {'products' : products})
+
+
 def login_page_view(request):
-    return render(request, 'login.html', {"type": "login"})
+    return login_page(request)
 
 def signup_page_view(request):
-    return render(request, 'login.html', {"type": "signup"})
+    return signup_page(request)
+
 
 def login_view(request):
+
     print('login view')
     username = request.POST['username']
     password = request.POST['password']
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        return render(request , 'home.html')
+
+    user = Client.get_by_username(username)
+
+    if user is not None and user.password == password:
+        request.session['username'] = username
+        authenticated_users.append(username)
+        return redirect('home')
 
     print('wrong credentials')
-    return login_page_view(request)
+    return login_page(request, True)
+
 
 def signup_view(request):
     print('signup view')
-    return login_page_view(request)
+
+    username = request.POST['username']
+    password = request.POST['password']
+
+    user = Client.get_by_username(username)
+    if user is not None:
+        print('username already exists')
+        return signup_page(request, True)
+    
+    Client.create(username, password)
+
+    return login_page(request)
 
 
-
-def home(request):
-    products = product.objects.all()
-    return render(request , 'home.html' , {'products' : products})
 
 def details(request , prod_id , quantite):
     products = product.objects.get(id = prod_id)

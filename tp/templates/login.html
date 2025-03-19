@@ -78,6 +78,20 @@
             </div>
             {% endif %}
 
+            {% if type == 'login' %}
+                {% if invalid_credentials %}
+                    <label class="form-label">
+                        Invalid credentials
+                    </label>
+                {% endif %}
+            {% elif type == 'signup' %}
+                {% if username_exists %}
+                    <label class="form-label">
+                        User already exists
+                    </label>
+                {% endif %}
+            {% endif %}
+
             <button type="submit" formaction="{% url type %}" class="btn btn-primary w-100">Submit</button>
         
         </form>
