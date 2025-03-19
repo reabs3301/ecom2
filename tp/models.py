@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django import forms
 # Create your models here.
 
-class product(models.Model):
+class Product(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
     price = models.FloatField()
@@ -11,6 +11,11 @@ class product(models.Model):
     image = models.ImageField(upload_to='media/')
     description = models.CharField(max_length=500)
     quantite = models.IntegerField()
+
+    @staticmethod
+    def get_by_id(id):
+        return Product.objects.get(id=id)
+    
 
 
 class Client(models.Model):
@@ -31,6 +36,25 @@ class Client(models.Model):
         except:
             return None
         
+    def get_panier_items(self):
+        return self.panier.all()
+    
+    def clear_panier(self, panier=None):
+        if panier is None:
+            panier = self.get_panier_items()
+        panier.delete()
+
+class PanierItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='panier')
+
+    @staticmethod
+    def create(product, client):
+        item = PanierItem.objects.create(product=product, client=client)
+        item.save()
+        return item
+
 
 class acheter(models.Model):
     id = models.AutoField(primary_key=True)
