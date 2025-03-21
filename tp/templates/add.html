@@ -49,10 +49,32 @@
         <div class="card" style="width: 25rem; padding-top: 20px;">
             <div class="card-body">
               <h4 class="card-title">ADD</h4>
-                <form method="POST">
+                <form method="POST" action="{% url 'add' %}" enctype="multipart/form-data">
                     {% csrf_token %}
-    
-                    {{form.as_p}}
+
+                    <label for="name">Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                    
+                    <label for="price">Price</label>
+                    <input type="number" name="price" class="form-control" required>
+
+                    <label for="description">Description</label>
+                    <input type="text" name="description" class="form-control" required>
+
+                    <label for="image">Image</label>
+                    <input type="file" name="image" class="form-control" required>
+
+                    <label for="categorie">Category</label>
+                    <select name="categorie" class="form-control" required>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                        <option value="furniture">Furniture</option>
+                    </select>
+
+                    <label for="quantitie">Quantity</label>
+                    <input type="number" name="quantite" class="form-control" required>
+
                     <input type="submit" value="submit" class="btn btn-success">
                     <a href="{% url 'home'%}" class="btn btn-primary">Go back</a>
                 </form>

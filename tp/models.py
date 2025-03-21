@@ -3,21 +3,6 @@ from django.contrib.auth.models import User
 from django import forms
 # Create your models here.
 
-class Product(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50)
-    price = models.FloatField()
-    categorie = models.CharField(max_length=20)
-    image = models.ImageField(upload_to='media/')
-    description = models.CharField(max_length=500)
-    quantite = models.IntegerField()
-
-    @staticmethod
-    def get_by_id(id):
-        return Product.objects.get(id=id)
-    
-
-
 class Client(models.Model):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50, unique=True)
@@ -44,9 +29,45 @@ class Client(models.Model):
             panier = self.get_panier_items()
         panier.delete()
 
+
+class Product(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    price = models.FloatField()
+    categorie = models.CharField(max_length=20)
+    image = models.ImageField(upload_to='media/')
+    description = models.CharField(max_length=500)
+
+class SellProduct(Product):
+    quantite = models.IntegerField()
+
+    @staticmethod
+    def create(_name, _price, _categorie, _image, _description, _quantite):
+        temp = SellProduct(name=_name, price=_price, categorie=_categorie, image=_image, description=_description, quantite=_quantite)
+        temp.save()
+        return temp
+
+    @staticmethod
+    def get_by_id(id):
+        return SellProduct.objects.get(id=id)
+
+class AuctionProduct(Product):
+    user = models.ForeignKey(Client, on_delete=models.CASCADE)
+
+    @staticmethod
+    def get_by_id(id):
+        return AuctionProduct.objects.get(id=id)
+    
+    @staticmethod
+    def create(_id, _name, _price, _categorie, _image, _description, _user):
+        temp = AuctionProduct(id=_id, name=_name, price=_price, categorie=_categorie, image=_image, description=_description, user=_user)
+        temp.save()
+        return temp
+    
+
 class PanierItem(models.Model):
     id = models.AutoField(primary_key=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(SellProduct, on_delete=models.CASCADE)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='panier')
 
     @staticmethod
@@ -61,3 +82,9 @@ class acheter(models.Model):
     id_product = models.CharField(max_length=100)
     id_client = models.CharField(max_length=10)
     total_amount = models.FloatField()
+
+
+
+# to initialize the database
+def init_sell_products():
+    SellProduct.create('Xbox Controlor', 4000, 'controlor', '../media/870a4b_42698bd69e164d14b7d8e21d8c828426mv2_7QsjsZf.webp', 'description1', 10)

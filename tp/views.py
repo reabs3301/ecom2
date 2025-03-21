@@ -1,10 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
-from .models import Product, Client, PanierItem
+from .models import SellProduct, Client, PanierItem, AuctionProduct
 from .forms import  productform
 from django.conf import settings
 from django.urls import resolve
-from django.views.decorators.csrf import csrf_exempt
 
 import stripe
 from reportlab.lib.pagesizes import letter
@@ -36,7 +35,6 @@ def authenticate(get_response):
 
 # views
 
-@csrf_exempt
 def welcome(request):
     image = r'/media/background.jpg'
     return render(request , 'welcome.html' , {'image' : image})
@@ -56,11 +54,17 @@ def signup_page(request, username_exists=False):
      return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
 
 
+def home(request, sell_products=True):
+    products = []
+    if sell_products:
+        products = SellProduct.objects.all()
+    else:
+        products = AuctionProduct.objects.all()
+    return render(request , 'home.html' , {'products' : products, 'sell_products': sell_products})
+    
 
 def home_view(request):
-
-    products = Product.objects.all()
-    return render(request , 'home.html' , {'products' : products})
+    return home(request)
 
 
 def login_page_view(request):
@@ -81,7 +85,7 @@ def login_view(request):
     if user is not None and user.password == password:
         request.session['username'] = username
         authenticated_users.append(username)
-        return redirect('home')
+        return home(request)
 
     print('wrong credentials')
     return login_page(request, True)
@@ -103,16 +107,46 @@ def signup_view(request):
     return login_page(request)
 
 
+# to finish
+def aution_page_view(request):
+    return render(request, 'aution.html')
+
+
+# gets the product and assigns the user and new price to it if the price is higher than the previous one
+def aution_view(request):
+    username = request.POST['username']
+    user = Client.get_by_username(username)
+    id = request.POST['id']
+    product = AuctionProduct.get_by_id(id)
+    price = request.POST['price']
+    if price > product.price:
+        product.price = price
+        product.user = user
+        product.save()
+
+    return home(request)
+
+
+# generates the bill for the user and deletes this product
+def close_aution_view(request):
+    id = request.POST['id']
+    product = AuctionProduct.get_by_id(id)
+    user = product.user
+    generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
+    product.delete()
+
+    return home(request)
+
 
 def details(request , prod_id , quantite):
-    products = Product.objects.get(id = prod_id)
+    products = SellProduct.objects.get(id = prod_id)
 
     return render(request , 'details.html' , {'products' : products , 'quantite' : quantite})
 
 product_list = []
 
 def decrease(request , prod_id ):
-    product = Product.get_by_id(id = prod_id)
+    product = SellProduct.get_by_id(id = prod_id)
 
     if product.quantite > 0:  
         product.quantite -= 1
@@ -161,28 +195,34 @@ def searching(request):
                 
                 category_to_search = to_search[ 1 : to_search.find('/')]
                 if len(to_search[to_search.find('/')+1 : ].strip()) == 0:
-                    returned_items = {'products_returned' : Product.objects.filter(categorie = category_to_search) , 'searched' : to_search[to_search.find('/')+1 : ]}
+                    returned_items = {'products_returned' : SellProduct.objects.filter(categorie = category_to_search) , 'searched' : to_search[to_search.find('/')+1 : ]}
                 else:
-                    returned_items = {'products_returned' : Product.objects.filter(categorie = category_to_search , name__contains = to_search[to_search.find('/')+1 : ]) , 'searched' : to_search[to_search.find('/')+1 : ]}
+                    returned_items = {'products_returned' : SellProduct.objects.filter(categorie = category_to_search , name__contains = to_search[to_search.find('/')+1 : ]) , 'searched' : to_search[to_search.find('/')+1 : ]}
                 return render(request , "search.html" , returned_items)
             elif to_search[0] != ':':
-                returned_items = {'products_returned' : Product.objects.filter(name__contains = to_search) , 'searched' : to_search}
+                returned_items = {'products_returned' : SellProduct.objects.filter(name__contains = to_search) , 'searched' : to_search}
                 return render(request , "search.html" , returned_items)
         return render(request , "search.html" , {'msg' : "you must type something"})
 
 
-def add(request):
-    if request.method == 'POST':
-        form = productform(request.POST , request.FILES)
+def add_view(request):
+    print(request.POST)
+    print(request.FILES)
 
-        if form.is_valid() : 
-            form.save()
-            form = productform()
-            return render(request , "add.html" , {'form' : form , 'message' : 'product added successfully'})
-    else :
-        form = productform()
-        return render(request , 'add.html' , {'form' : form , 'message' : form.errors})
-    return render(request , 'add.html' , {'form' : form , 'message' : form.errors})
+
+    name = request.POST['name']
+    price = request.POST['price']
+    categorie = request.POST['categorie']
+    image = request.FILES['image']
+    description = request.POST['description']
+    quantite = request.POST['quantite']
+    SellProduct.create(name, price, categorie, image, description, quantite)
+
+    return render(request , "add.html" , {'message' : 'product added successfully'})
+
+
+def add_page_view(request):
+    return render(request , 'add.html')
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -202,7 +242,7 @@ def payment_page(request , total):
             for item in panier_items:
                 price += item.product.price
             price = int(price)
-            generate_bill_pdf((item.product for item in panier_items) , price )
+            generate_bill_pdf((item.product for item in panier_items) , price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
             user.clear_panier(panier_items)
 
             return render(request, 'payment.html', {
@@ -217,7 +257,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
-def generate_bill_pdf(product_list, total_amount, filename=f"{settings.BASE_DIR}/bill.pdf"):
+def generate_bill_pdf(product_list, total_amount, filename):
     pdf = canvas.Canvas(filename, pagesize=letter)
     pdf.setFont("Helvetica", 12)
 

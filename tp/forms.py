@@ -1,10 +1,10 @@
 from http import client
 from django.db.models import fields
 from django import forms
-from .models import Product
+from .models import SellProduct
 
 
 class productform(forms.ModelForm):
     class Meta:
-        model = Product
+        model = SellProduct
         fields = '__all__'
