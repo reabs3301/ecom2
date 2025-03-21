@@ -4,6 +4,7 @@ from .models import Product, Client, PanierItem
 from .forms import  productform
 from django.conf import settings
 from django.urls import resolve
+from django.views.decorators.csrf import csrf_exempt
 
 import stripe
 from reportlab.lib.pagesizes import letter
@@ -35,6 +36,7 @@ def authenticate(get_response):
 
 # views
 
+@csrf_exempt
 def welcome(request):
     image = r'/media/background.jpg'
     return render(request , 'welcome.html' , {'image' : image})

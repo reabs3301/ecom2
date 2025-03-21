@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+	
+    'corsheaders',
     'tp',
 ]
 
 MIDDLEWARE = [
+	'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -133,3 +136,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # settings.py
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51Qyyi7HmX7IGVLuDw8BgV79FQ3kzfqCRnG5IixB4sdrLXXDDC6VmPlTOJyI2ND4ZBlEDukrNSQJH3OHFlRhFR6z700nwCCcHjE'  # Replace with your Publishable Key
 STRIPE_SECRET_KEY = 'sk_test_51Qyyi7HmX7IGVLuDee3GQA7Kp7RaHl1MQO9ZrRP74aglLdYq4m0cjME0IoQygUYr5gMjVXCXpBp6AkeHn2BE8sMU00zgN9FNHr'       # Replace with your Secret Key
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://127.0.0.1:5500",  # Allow requests from your frontend
+#     "http://localhost:5500",  # Optional, in case you're using localhost
+# ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
+
+ALLOWED_HOSTS = ['*']
