@@ -30,12 +30,18 @@
                 <a class="nav-link" href="{% url 'add_page' %}" style="color: white;">ADD</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'pannier' %}" style="color: white;">pannier</a>
+                <a class="nav-link" href="{% url 'pannier_page' %}" style="color: white;">pannier</a>
               </li>
             </ul>
             <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
               {% csrf_token %}
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
+              <input type="hidden" name="type" value="{{ type }}">
+              <select name="type" class="form-select me-2" aria-label="Default select example" style="width: fit-content;">
+                <option {% if type == 0 %} selected {%endif%} value=0>Buy</option>
+                <option {% if type == 1 %} selected {%endif%} value=1>Bid</option>
+              </select>
+
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input">
               
               <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
               <style>
@@ -62,22 +68,21 @@
             {% for product in products %}
                 <div class="col-md-4 mb-4" >
                     <div class="card shadow-sm" >
-                        {% if product.quantite > 0 %}
-                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text">price : {{product.price}}</p>
-                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
-                            </div>
-                        {% else %}
-                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; opacity: 0.3;">
-                            <div class="card-body">
-                                <h2>OUT OF STOCK.</h2>
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text">price : {{product.price}}</p>
-                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
-                            </div>
+                      <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if type == 0 and product.quantite == 0 %} opacity: 0.3; {% endif %}">
+                      <div class="card-body">
+                        {% if type == 0 and product.quantite == 0 %}
+                          <h2>OUT OF STOCK.</h2>
                         {% endif %}    
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <div class="card-text">Price : {{product.price}}</div>
+                        <div class="card-text">Category : {{product.categorie}}</div>
+                        {% if type == 0 %}
+                          <div class="card-text">Quantity : {{product.quantite}}</div>
+                          <a href="{% url 'detail' product.id type %}" class="btn btn-primary">View Details</a>
+                        {% elif type == 1 %}
+                          <a href="{% url 'auction_page' product.id %}" class="btn btn-primary">Bid</a>
+                        {% endif %}
+                      </div>
                     </div>
                 </div>
             {% endfor %}

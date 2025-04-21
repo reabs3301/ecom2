@@ -38,6 +38,25 @@ class Product(models.Model):
     image = models.ImageField(upload_to='media/')
     description = models.CharField(max_length=500)
 
+    @classmethod
+    def get_by_name_like(cls, name, queryset=None):
+        if queryset is None:
+            queryset = cls.objects.all()
+        return queryset.filter(name__contains=name)   
+
+    @classmethod
+    def get_by_categorie(cls, categorie, queryset=None):
+        if queryset is None:
+            queryset = cls.objects.all()
+        return queryset.filter(categorie=categorie)
+    
+    @classmethod
+    def get_by_id(cls, id):
+        try:
+            return cls.objects.get(id=id)
+        except cls.DoesNotExist:
+            return None
+        
 class SellProduct(Product):
     quantite = models.IntegerField()
 
@@ -47,22 +66,28 @@ class SellProduct(Product):
         temp.save()
         return temp
 
-    @staticmethod
-    def get_by_id(id):
-        return SellProduct.objects.get(id=id)
 
 class AuctionProduct(Product):
-    user = models.ForeignKey(Client, on_delete=models.CASCADE)
+    best_bider = models.ForeignKey(Client, on_delete=models.CASCADE, default=None, null=True)
+    biders = models.ManyToManyField(Client, related_name='bids')
 
-    @staticmethod
-    def get_by_id(id):
-        return AuctionProduct.objects.get(id=id)
     
     @staticmethod
-    def create(_id, _name, _price, _categorie, _image, _description, _user):
-        temp = AuctionProduct(id=_id, name=_name, price=_price, categorie=_categorie, image=_image, description=_description, user=_user)
+    def create(_name, _price, _categorie, _image, _description):
+        temp = AuctionProduct(name=_name, price=_price, categorie=_categorie, image=_image, description=_description)
         temp.save()
         return temp
+    
+    def add_bider(self, bider, price):
+        self.biders.add(bider)
+        if self.price < price:
+            self.price = price
+            self.best_bider = bider
+            self.save()
+        
+
+    def can_bid(self, client):
+        return not self.biders.filter(id=client.id).exists()
     
 
 class PanierItem(models.Model):

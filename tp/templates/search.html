@@ -11,40 +11,27 @@
     <center>
 
         {% if not_passed %}
-            <h1 style="padding-top: 50px;">{{msg}} :/</h1>
-        {% else %}    
-            {% if products_returned %}
-                
-                    <h1>search result for " {{searched}} " : </h1>
-                    <div class="container mt-5">
-                        
-                        <div class="row">
-                            {% for product in products_returned %}
-                                <div class="col-md-4 mb-4">
-                                    <div class="card shadow-sm">
-                                        {% if product.quantite > 0 %}
-                                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
-                                            <div class="card-body">
-                                                <h5 class="card-title">{{ product.name }}</h5>
-                                                <p class="card-text">price : {{product.price}}</p>
-                                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
-                                            </div>
-                                        {% else %}
-                                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; opacity: 0.3;">
-                                            <div class="card-body">
-                                                <h2>OUT OF STOCK.</h2>
-                                                <h5 class="card-title">{{ product.name }}</h5>
-                                                <p class="card-text">price : {{product.price}}</p>
-                                                <a href="{% url 'detail' product.id product.quantite%}" class="btn btn-primary">View Details</a>
-                                            </div>
-                                        {% endif %}    
-                                    </div>
-                                </div>
-                            {% endfor %}
+            <h1 style="padding-top: 50px;">{{message}}</h1>
+        {% else %}
+            <h1>search result for " {{searched}} "</h1>
+            <div class="container mt-5">
+                <div class="row">
+                    {% for product in products %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card shadow-sm">
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if product.quantite == 0 %} opacity: 0.3; {% endif %}">
+                                <div class="card-body">
+                                    {% if type == 0 and product.quantite == 0 %}<h2>OUT OF STOCK.</h2>{% endif %}    
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text">price : {{product.price}}</p>
+                                    <p class="card-text">categorie : {{product.categorie}}</p>
+                                    <a href="{% url 'detail' product.id type%}" class="btn btn-primary">View Details</a>
+                                </div>    
+                            </div>
                         </div>
-                    </div>
-                
-            {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
         {% endif %}    
     </center>
 

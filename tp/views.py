@@ -32,6 +32,9 @@ def authenticate(get_response):
     return wrapper
 
 
+SELL = BUY = 0
+AUCTION = BID = 1
+
 
 # views
 
@@ -54,13 +57,14 @@ def signup_page(request, username_exists=False):
      return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
 
 
-def home(request, sell_products=True):
-    products = []
-    if sell_products:
-        products = SellProduct.objects.all()
-    else:
-        products = AuctionProduct.objects.all()
-    return render(request , 'home.html' , {'products' : products, 'sell_products': sell_products})
+def home(request, products=None, type=BUY):
+    if products is None:
+        products = []
+        if type == BUY:
+            products = SellProduct.objects.all()
+        else:
+            products = AuctionProduct.objects.all()
+    return render(request , 'home.html' , {'products' : products, 'type': type})
     
 
 def home_view(request):
@@ -107,22 +111,15 @@ def signup_view(request):
     return login_page(request)
 
 
-# to finish
-def aution_page_view(request):
-    return render(request, 'aution.html')
-
-
 # gets the product and assigns the user and new price to it if the price is higher than the previous one
-def aution_view(request):
-    username = request.POST['username']
+def bid_view(request):
+    username = request.session['username']
     user = Client.get_by_username(username)
     id = request.POST['id']
     product = AuctionProduct.get_by_id(id)
-    price = request.POST['price']
-    if price > product.price:
-        product.price = price
-        product.user = user
-        product.save()
+
+    price = int(request.POST['price'])
+    product.add_bider(user, price)
 
     return home(request)
 
@@ -131,22 +128,37 @@ def aution_view(request):
 def close_aution_view(request):
     id = request.POST['id']
     product = AuctionProduct.get_by_id(id)
-    user = product.user
+    user = product.best_bider
     generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
     product.delete()
 
     return home(request)
 
+def auction_page_view(request, prod_id):
+    product = AuctionProduct.get_by_id(prod_id)
+    username = request.session['username']
+    user = Client.get_by_username(username)
+    
+    if product.can_bid(user):
+        print('can bid')
+        return render(request , 'auction.html' , {'product' : product})
+    else:
+        print('cannot bid')
+        return home(request, type=AUCTION)
 
-def details(request , prod_id , quantite):
-    products = SellProduct.objects.get(id = prod_id)
+def details(request, prod_id, type):
+    
+    product = SellProduct.get_by_id(prod_id) if type == BUY else AuctionProduct.get_by_id(prod_id)
+    print(prod_id, type, product)
+    return render(request , 'details.html' , {'product' : product, 'type': type}) 
 
-    return render(request , 'details.html' , {'products' : products , 'quantite' : quantite})
+def details_view(request, prod_id, type):
+    return details(request, prod_id, int(type))
 
 product_list = []
 
-def decrease(request , prod_id ):
-    product = SellProduct.get_by_id(id = prod_id)
+def add_to_pannier_view(request , prod_id ):
+    product = SellProduct.get_by_id(prod_id)
 
     if product.quantite > 0:  
         product.quantite -= 1
@@ -154,9 +166,9 @@ def decrease(request , prod_id ):
 
         PanierItem.create(product, Client.get_by_username(request.session['username']))
         
-    return redirect('home')   
+    return home(request)   
 
-def pannier(request):
+def pannier_page_view(request):
     price = 0
     user = Client.get_by_username(request.session['username'])
     product_list = [item.product for item in user.get_panier_items()]
@@ -180,49 +192,65 @@ def delete_from_pannier(request , prod_id):
             product.save()
             item.delete()
             break
-    return redirect('pannier')
+    return redirect('pannier_page')
 
 
 def searching(request):
+    text = request.POST['input']
+    type = int(request.POST['type'])
+    if text == '':
+        return home(request, type=type)        
+    
+    get_by_name_like = lambda type, text, queryset=None: SellProduct.get_by_name_like(text, queryset) if type == BUY else AuctionProduct.get_by_name_like(text, queryset)
+    get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_categorie(text, queryset) if type == BUY else AuctionProduct.get_by_categorie(text, queryset)
 
-    if request.method == 'POST':
-        to_search = request.POST['input_to_pass']
-        if not to_search :
-            not_passed = True
-            return render(request , 'search.html', {'not_passed' : not_passed , 'msg' : 'you need to type something to search'})
-        else :
-            if to_search[0] == ':':
-                
-                category_to_search = to_search[ 1 : to_search.find('/')]
-                if len(to_search[to_search.find('/')+1 : ].strip()) == 0:
-                    returned_items = {'products_returned' : SellProduct.objects.filter(categorie = category_to_search) , 'searched' : to_search[to_search.find('/')+1 : ]}
-                else:
-                    returned_items = {'products_returned' : SellProduct.objects.filter(categorie = category_to_search , name__contains = to_search[to_search.find('/')+1 : ]) , 'searched' : to_search[to_search.find('/')+1 : ]}
-                return render(request , "search.html" , returned_items)
-            elif to_search[0] != ':':
-                returned_items = {'products_returned' : SellProduct.objects.filter(name__contains = to_search) , 'searched' : to_search}
-                return render(request , "search.html" , returned_items)
-        return render(request , "search.html" , {'msg' : "you must type something"})
+    if text[0] != ":":
+        products = get_by_name_like(type, text)
+        # return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
+        return home(request, products, type)
+    
+    invalid_search = lambda : render(request , 'search.html' , {'not_passed': True, 'message': f'invalid search: "{text}"'})
 
+    if not len(text) > 1:
+        return invalid_search()
+    
+    slash = text.find('/')
+    if slash == 1 or slash == len(text) - 1:
+        return invalid_search()
+
+    if slash == -1:
+        categorie = text[1:] 
+    else:
+        categorie = text[1:slash]
+    products = get_by_categorie(type, categorie)
+
+    if slash != -1:
+        name = text[slash + 1:]
+        products = get_by_name_like(type, name, products)
+
+    # print(products)    
+    return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
+
+        
 
 def add_view(request):
-    print(request.POST)
-    print(request.FILES)
-
-
     name = request.POST['name']
-    price = request.POST['price']
     categorie = request.POST['categorie']
     image = request.FILES['image']
     description = request.POST['description']
-    quantite = request.POST['quantite']
-    SellProduct.create(name, price, categorie, image, description, quantite)
+    price = request.POST['price']
+    type = int(request.POST['type'])
+    if type == SELL:
+        quantite = request.POST['quantite']
+        SellProduct.create(name, price, categorie, image, description, quantite)
+    else:
+        AuctionProduct.create(name, price, categorie, image, description)
 
     return render(request , "add.html" , {'message' : 'product added successfully'})
 
 
-def add_page_view(request):
-    return render(request , 'add.html')
+def add_page_view(request, type=SELL):
+    return render(request , 'add.html', {'type': type})
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -274,3 +302,7 @@ def generate_bill_pdf(product_list, total_amount, filename):
 
     pdf.save()
     print(f"Bill saved as {filename}")
+
+
+def print_view(request):
+    return add_page_view(request, int(request.POST['type']))

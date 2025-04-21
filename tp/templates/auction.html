@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<div class="card" style="width: 20rem; margin: 10px; border-color:	#ADD8E6; border-width: 2px; display: flex; flex-direction: row;">
+		<div class="card shadow-sm" >
+			<img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+			<div class="card-body">
+				<h5 class="card-title">{{ product.name }}</h5>
+				<p class="card-text">categorie : {{product.categorie}}</p>
+				<a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
+			</div>
+		</div>
+		<div>
+			<h1>Initial Price : {{ product.price }}</h1>
+			<p class="card-text">price : {{product.price}}</p>
+			<form method="POST" action="{% url 'bid' %}">
+				{% csrf_token %}
+				<input type="hidden" name="id" value="{{ product.id }}">
+				<input type="number" name="price" placeholder="Enter your bid price" required>
+				<button type="submit" class="btn btn-primary">Submit Bid</button>
+			</form>
+		</div>
+	</div>
+
+</body>
+</html>
