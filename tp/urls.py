@@ -25,6 +25,12 @@ urlpatterns = [
    path('paiement/<int:total>/' , views.payment_page , name='paiement'),
    #path('generate_bill/' , views.generate_bill , name='generate_bill')
 
+   path('seller/auction_products_view/' , views.seller_auction_products_view , name='seller/auction_products'),
+   path('seller/sell_products_view/', views.seller_sell_products_view , name='seller/sell_products'),
+   path('seller/home_view/' , views.seller_home_view , name='seller/home'),
+   path('seller/close_auction_view/<int:prod_id>/' , views.seller_close_auction_view , name='seller/close_auction'),
+   path('seller/details_view/<int:prod_id>/<int:type>/', views.seller_details_view , name='seller/details'), 
+
    path('print/', views.print_view, name='print'),
    
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

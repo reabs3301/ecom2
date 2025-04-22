@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
-from .models import SellProduct, Client, PanierItem, AuctionProduct
+from .models import SellProduct, Client, PanierItem, AuctionProduct, Seller
 from .forms import  productform
 from django.conf import settings
 from django.urls import resolve
@@ -10,6 +10,25 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from PIL import Image
+
+class AuctionProductResult:
+    def __init__(self, product):
+        self.id = product.id
+        self.name = product.name
+        self.price = product.price
+        self.categorie = product.categorie
+        self.image = product.image
+        self.description = product.description
+        self.is_there_bider = product.is_there_bider()
+        
+    @staticmethod
+    def convert_one(product):
+        return AuctionProductResult(product)
+    
+    @staticmethod
+    def convert_all(products):
+        return [AuctionProductResult(product) for product in products]
+        
 
 # decorators 
 
@@ -35,6 +54,8 @@ def authenticate(get_response):
 SELL = BUY = 0
 AUCTION = BID = 1
 
+CLIENT = 0
+SELLER = 1
 
 # views
 
@@ -57,7 +78,7 @@ def signup_page(request, username_exists=False):
      return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
 
 
-def home(request, products=None, type=BUY):
+def client_home(request, products=None, type=BUY):
     if products is None:
         products = []
         if type == BUY:
@@ -66,9 +87,22 @@ def home(request, products=None, type=BUY):
             products = AuctionProduct.objects.all()
     return render(request , 'home.html' , {'products' : products, 'type': type})
     
+def seller_home(request, products=None, type=SELL):
+    if products is None:
+        products = []
+        username = request.session['username']
+        user = Seller.get_by_username(username)
+        if type == SELL:
+            products = user.get_sell_products()
+        else:
+            products = AuctionProductResult.convert_all(user.get_auction_products())
+    return render(request, 'seller/home.html', {'products': products, 'type': type})
+
+def seller_home_view(request):
+    return seller_home(request)
 
 def home_view(request):
-    return home(request)
+    return client_home(request)
 
 
 def login_page_view(request):
@@ -83,13 +117,21 @@ def login_view(request):
     print('login view')
     username = request.POST['username']
     password = request.POST['password']
+    role = int(request.POST['role'])
 
-    user = Client.get_by_username(username)
+    if role == CLIENT:
+        user = Client.get_by_username(username)
+    else:
+        user = Seller.get_by_username(username)
 
     if user is not None and user.password == password:
         request.session['username'] = username
+        request.session['role'] = role
         authenticated_users.append(username)
-        return home(request)
+        if role == CLIENT:
+            return client_home(request)
+        else:
+            return seller_home(request)
 
     print('wrong credentials')
     return login_page(request, True)
@@ -100,16 +142,45 @@ def signup_view(request):
 
     username = request.POST['username']
     password = request.POST['password']
+    role = int(request.POST['role'])
+    if role == CLIENT:
+        user = Client.get_by_username(username)
+    else:
+        user = Seller.get_by_username(username)
 
-    user = Client.get_by_username(username)
     if user is not None:
         print('username already exists')
         return signup_page(request, True)
     
-    Client.create(username, password)
+    if role == CLIENT:
+        Client.create(username, password)
+    else:
+        Seller.create(username, password)
 
     return login_page(request)
 
+def seller_sell_products_view(request):
+    print('seller sell products view')
+    username = request.session['username']
+    user = Seller.get_by_username(username)
+    products = user.get_sell_products()
+    print(products)
+    return seller_home(request, products, SELL)
+
+def seller_auction_products_view(request):
+    print('seller auction products view')
+    username = request.session['username']
+    user = Seller.get_by_username(username)
+    products = user.get_auction_products()
+    products = AuctionProductResult.convert_all(products)
+
+    print(products)
+    return seller_home(request, products, AUCTION)
+
+def seller_details_view(request, prod_id, type):
+    product = SellProduct.get_by_id(prod_id) if type == BUY else AuctionProductResult.convert_one(AuctionProduct.get_by_id(prod_id))
+    print(prod_id, type, product)
+    return render(request , 'seller/details.html' , {'product' : product, 'type': type})
 
 # gets the product and assigns the user and new price to it if the price is higher than the previous one
 def bid_view(request):
@@ -121,18 +192,18 @@ def bid_view(request):
     price = int(request.POST['price'])
     product.add_bider(user, price)
 
-    return home(request)
+    return client_home(request)
 
 
 # generates the bill for the user and deletes this product
-def close_aution_view(request):
-    id = request.POST['id']
-    product = AuctionProduct.get_by_id(id)
+def seller_close_auction_view(request, prod_id):
+    product = AuctionProduct.get_by_id(prod_id)
     user = product.best_bider
-    generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
-    product.delete()
+    if user is not None:
+        generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
+        product.delete()
 
-    return home(request)
+    return seller_home(request, type=AUCTION)
 
 def auction_page_view(request, prod_id):
     product = AuctionProduct.get_by_id(prod_id)
@@ -144,7 +215,7 @@ def auction_page_view(request, prod_id):
         return render(request , 'auction.html' , {'product' : product})
     else:
         print('cannot bid')
-        return home(request, type=AUCTION)
+        return client_home(request, type=AUCTION)
 
 def details(request, prod_id, type):
     
@@ -166,7 +237,7 @@ def add_to_pannier_view(request , prod_id ):
 
         PanierItem.create(product, Client.get_by_username(request.session['username']))
         
-    return home(request)   
+    return client_home(request)   
 
 def pannier_page_view(request):
     price = 0
@@ -199,7 +270,7 @@ def searching(request):
     text = request.POST['input']
     type = int(request.POST['type'])
     if text == '':
-        return home(request, type=type)        
+        return client_home(request, type=type)        
     
     get_by_name_like = lambda type, text, queryset=None: SellProduct.get_by_name_like(text, queryset) if type == BUY else AuctionProduct.get_by_name_like(text, queryset)
     get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_categorie(text, queryset) if type == BUY else AuctionProduct.get_by_categorie(text, queryset)
@@ -207,7 +278,7 @@ def searching(request):
     if text[0] != ":":
         products = get_by_name_like(type, text)
         # return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
-        return home(request, products, type)
+        return client_home(request, products, type)
     
     invalid_search = lambda : render(request , 'search.html' , {'not_passed': True, 'message': f'invalid search: "{text}"'})
 
@@ -238,13 +309,15 @@ def add_view(request):
     categorie = request.POST['categorie']
     image = request.FILES['image']
     description = request.POST['description']
-    price = request.POST['price']
+    price = int(request.POST['price'])
     type = int(request.POST['type'])
+    seller = Seller.get_by_username(request.session['username'])
+
     if type == SELL:
-        quantite = request.POST['quantite']
-        SellProduct.create(name, price, categorie, image, description, quantite)
+        quantite = int(request.POST['quantite'])
+        SellProduct.create(name, price, categorie, image, description, quantite, seller)
     else:
-        AuctionProduct.create(name, price, categorie, image, description)
+        AuctionProduct.create(name, price, categorie, image, description, seller)
 
     return render(request , "add.html" , {'message' : 'product added successfully'})
 

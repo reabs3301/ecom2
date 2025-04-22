@@ -70,13 +70,11 @@
                 <label class="form-label">Password</label>
                 <input name="password" type="password" class="form-control" placeholder="Enter your password">
             </div>
-            {% if type == 'signup' %}
             <label class="form-label">Role</label>
             <div class="mb-3" style="display: flex; justify-content: space-around;">
-                <div><input name="role" type="radio">Client</input></div>
-                <div><input name="role" type="radio">Admin</input></div>
+                <div><input name="role" type="radio" value=0>Client</input></div>
+                <div><input name="role" type="radio" value=1>Seller</input></div>
             </div>
-            {% endif %}
 
             {% if type == 'login' %}
                 {% if invalid_credentials %}
