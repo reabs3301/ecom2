@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    {%load static%}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>DETAILS</title>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #007BFF;">
+        <div class="container-fluid" >
+          <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'home' %}" style="color: white;">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'add' %}" style="color: white;">ADD</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'pannier_page' %}" style="color: white;">pannier</a>
+              </li>
+            </ul>
+            <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
+              {% csrf_token %}
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
+              
+              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
+              <style>
+                .custom-search-btn {
+                    background-color:white ;
+                    color: #007BFF ;
+                    border: 2px solid #007BFF ;
+                    /*transition: 0.3s ease-in-out;*/
+                }
+            
+                .custom-search-btn:hover {
+                    background-color: #007BFF ;
+                    color: white ;
+                }
+            </style>
+            </form>
+          </div>
+        </div>
+    </nav>
+    <center>
+        
+        <div class="card" style="width: 20rem; margin: 10px; border-color:	#ADD8E6; border-width: 2px;">
+          
+          <div class="card shadow-sm" >
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if product.quantite == 0 %}opacity: 0.3;{% endif %}">
+            <div class="card-body">
+              {% if type == 0 and product.quantite == 0 %}
+                <h2>OUT OF STOCK.</h2>
+              {% endif %}    
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text">Price : {{product.price}}</p>
+              <p class="card-text">Categorie : {{product.categorie}}</p>
+			  <p class="card-text">Description : {{product.description}}</p>
+              {% if type == 1 %}              
+			  <p class="card-text">Current Bid : {{product.current_bid}}</p>
+              <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
+              {%endif%}
+              <a href="{% url 'seller/home' %}" class="btn btn-secondary">Back</a>
+            </div>
+          </div>
+                
+            
+        </div>
+    </center>
+
+    
+    
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"> </script>
+</body>
+</html>
