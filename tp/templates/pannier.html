@@ -20,30 +20,8 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{% url 'home' %}" style="color: white;">Home</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'add' %}" style="color: white;">ADD</a>
-              </li>
-              
             </ul>
-            <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
-              {% csrf_token %}
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
-              
-              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
-              <style>
-                .custom-search-btn {
-                    background-color:white ;
-                    color: #007BFF ;
-                    border: 2px solid #007BFF ;
-                    /*transition: 0.3s ease-in-out;*/
-                }
             
-                .custom-search-btn:hover {
-                    background-color: #007BFF ;
-                    color: white ;
-                }
-            </style>
-            </form>
           </div>
         </div>
     </nav>

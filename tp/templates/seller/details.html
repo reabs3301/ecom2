@@ -64,7 +64,7 @@
               <p class="card-text">Categorie : {{product.categorie}}</p>
 			  <p class="card-text">Description : {{product.description}}</p>
               {% if type == 1 %}              
-			  <p class="card-text">Current Bid : {{product.current_bid}}</p>
+			  <p class="card-text">Current Bid : {{product.is_there_bider}}</p>
               <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
               {%endif%}
               <a href="{% url 'seller/home' %}" class="btn btn-secondary">Back</a>

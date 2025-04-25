@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
-from .models import SellProduct, Client, PanierItem, AuctionProduct, Seller
+from .models import SellProduct, Client, PanierItem, AuctionProduct, Seller, AuctionPanierItem
 from .forms import  productform
 from django.conf import settings
 from django.urls import resolve
@@ -200,8 +200,10 @@ def seller_close_auction_view(request, prod_id):
     product = AuctionProduct.get_by_id(prod_id)
     user = product.best_bider
     if user is not None:
-        generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
-        product.delete()
+        # generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
+        # product.delete()
+        AuctionPanierItem.create(product, user)
+
 
     return seller_home(request, type=AUCTION)
 
@@ -242,7 +244,11 @@ def add_to_pannier_view(request , prod_id ):
 def pannier_page_view(request):
     price = 0
     user = Client.get_by_username(request.session['username'])
-    product_list = [item.product for item in user.get_panier_items()]
+    product_list = []
+    product_list.extend([item.product for item in user.get_panier_items()])
+    print('panier items', product_list)
+    product_list.extend([item.product for item in user.get_auction_panier_items()])
+    print('all panier items', product_list)
 
     for item in product_list:
         price += item.price

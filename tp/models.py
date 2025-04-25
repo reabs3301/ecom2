@@ -27,6 +27,10 @@ class Client(User):
     def get_panier_items(self):
         return self.panier.all()
     
+    def get_auction_panier_items(self):
+        return self.auction_panier.all()
+
+
     def clear_panier(self, panier=None):
         if panier is None:
             panier = self.get_panier_items()
@@ -121,6 +125,18 @@ class PanierItem(models.Model):
         item = PanierItem.objects.create(product=product, client=client)
         item.save()
         return item
+    
+class AuctionPanierItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(AuctionProduct, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='auction_panier')
+
+    @staticmethod
+    def create(product, client):
+        item = AuctionPanierItem.objects.create(product=product, client=client)
+        item.save()
+        return item
+    
 
 
 class acheter(models.Model):
