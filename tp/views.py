@@ -11,24 +11,59 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from PIL import Image
 
-class AuctionProductResult:
+
+SELL = BUY = 0
+AUCTION = BID = 1
+
+CLIENT = 0
+SELLER = 1
+class ProductResult:
     def __init__(self, product):
+        self.product = product  
         self.id = product.id
         self.name = product.name
         self.price = product.price
         self.categorie = product.categorie
         self.image = product.image
         self.description = product.description
+
+
+class AuctionProductResult(ProductResult):
+    def __init__(self, product):
+        super().__init__(product)
         self.is_there_bider = product.is_there_bider()
-        
-    @staticmethod
-    def convert_one(product):
-        return AuctionProductResult(product)
-    
+        self.is_closed = product.closed
+        self.can_close = not product.closed and product.is_there_bider
+        self.type = AUCTION
+
     @staticmethod
     def convert_all(products):
         return [AuctionProductResult(product) for product in products]
-        
+    
+    @staticmethod
+    def convert_one(product):
+        return AuctionProductResult(product)
+
+class SellProductResult(ProductResult):
+    def __init__(self, product):
+        super().__init__(product)
+        self.type = SELL
+        self.quantity = product.quantite
+
+    @staticmethod
+    def convert_all(products):
+        return [SellProductResult(product) for product in products]
+    
+    @staticmethod
+    def convert_one(product):
+        return SellProductResult(product)
+
+
+def create_result_from_panier_items(sell_product_items, auction_product_items):
+    sell_products = [SellProductResult.convert_one(item.product) for item in sell_product_items]
+    auction_products = [AuctionProductResult.convert_one(item.product) for item in auction_product_items]
+    return sell_products + auction_products
+
 
 # decorators 
 
@@ -51,11 +86,7 @@ def authenticate(get_response):
     return wrapper
 
 
-SELL = BUY = 0
-AUCTION = BID = 1
 
-CLIENT = 0
-SELLER = 1
 
 # views
 
@@ -96,6 +127,7 @@ def seller_home(request, products=None, type=SELL):
             products = user.get_sell_products()
         else:
             products = AuctionProductResult.convert_all(user.get_auction_products())
+
     return render(request, 'seller/home.html', {'products': products, 'type': type})
 
 def seller_home_view(request):
@@ -163,18 +195,14 @@ def seller_sell_products_view(request):
     print('seller sell products view')
     username = request.session['username']
     user = Seller.get_by_username(username)
-    products = user.get_sell_products()
-    print(products)
+    products = SellProductResult.convert_all(user.get_sell_products())
     return seller_home(request, products, SELL)
 
 def seller_auction_products_view(request):
     print('seller auction products view')
     username = request.session['username']
     user = Seller.get_by_username(username)
-    products = user.get_auction_products()
-    products = AuctionProductResult.convert_all(products)
-
-    print(products)
+    products = AuctionProductResult.convert_all(user.get_auction_products())
     return seller_home(request, products, AUCTION)
 
 def seller_details_view(request, prod_id, type):
@@ -199,11 +227,8 @@ def bid_view(request):
 def seller_close_auction_view(request, prod_id):
     product = AuctionProduct.get_by_id(prod_id)
     user = product.best_bider
-    if user is not None:
-        # generate_bill_pdf([product], product.price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
-        # product.delete()
-        AuctionPanierItem.create(product, user)
-
+    AuctionPanierItem.create(product, user)
+    product.close()
 
     return seller_home(request, type=AUCTION)
 
@@ -244,12 +269,7 @@ def add_to_pannier_view(request , prod_id ):
 def pannier_page_view(request):
     price = 0
     user = Client.get_by_username(request.session['username'])
-    product_list = []
-    product_list.extend([item.product for item in user.get_panier_items()])
-    print('panier items', product_list)
-    product_list.extend([item.product for item in user.get_auction_panier_items()])
-    print('all panier items', product_list)
-
+    product_list = create_result_from_panier_items(user.get_panier_items(), user.get_auction_panier_items())
     for item in product_list:
         price += item.price
     if price == 0:
@@ -342,21 +362,26 @@ def payment_page(request , total):
                 currency='usd',
                 payment_method_types=['card'],
             )
-            price = 0
             user = Client.get_by_username(request.session['username'])
-            panier_items = user.get_panier_items()
+            product_list = create_result_from_panier_items(user.get_panier_items(), user.get_auction_panier_items())
 
-            for item in panier_items:
-                price += item.product.price
-            price = int(price)
-            generate_bill_pdf((item.product for item in panier_items) , price, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
-            user.clear_panier(panier_items)
+            generate_bill_pdf(product_list, total, filename=f"{settings.BASE_DIR}/{user.username}_bill.pdf")
+
+            
+            for item in product_list:
+                if item.type == SELL and item.quantity == 0 and not item.product.is_deleted():
+                    item.product.delete()
+                elif item.type == AUCTION:
+                    item.product.delete()
+
+            user.clear_all_panier_items()
 
             return render(request, 'payment.html', {
                 'client_secret': intent.client_secret,
                 'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY})
         except Exception as e:
             return render(request, 'error.html', {'error': str(e)})
+        
     return render(request, 'pannier.html')
 
 
@@ -374,7 +399,7 @@ def generate_bill_pdf(product_list, total_amount, filename):
 
     y = 690
     for product in product_list:
-        pdf.drawString(120, y, f"- {product.price} ({product.price} dzd)")
+        pdf.drawString(120, y, f"- {product.name} : {product.price} ")
         y -= 20
 
     pdf.drawString(100, y - 20, f"Total Amount: {total_amount} dzd")

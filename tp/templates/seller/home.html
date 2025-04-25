@@ -81,8 +81,11 @@
                         {% if type == 0 %}
                           <div class="card-text">Quantity : {{product.quantite}}</div>
                         {% elif type == 1 %}
-                          <div class="card-text">Current Bid : {%if product.is_there_bider%} True {%else%} None {%endif%}</div>
-                          <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
+                          <div class="card-text">Auction Closed : {{product.is_closed}}</div>
+                          <div class="card-text">Current Bid : {%if product.is_there_bider%} There is a bider {%else%} None {%endif%}</div>
+                          {%if product.can_close %}
+                            <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
+                          {% endif %}
                         {% endif %}
                         <a href="{% url 'seller/details' product.id type %}" class="btn btn-primary">Details</a>
                       </div>

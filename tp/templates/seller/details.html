@@ -62,10 +62,13 @@
               <h5 class="card-title">{{ product.name }}</h5>
               <p class="card-text">Price : {{product.price}}</p>
               <p class="card-text">Categorie : {{product.categorie}}</p>
-			  <p class="card-text">Description : {{product.description}}</p>
+              <p class="card-text">Description : {{product.description}}</p>
               {% if type == 1 %}              
-			  <p class="card-text">Current Bid : {{product.is_there_bider}}</p>
-              <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
+                <div class="card-text">Auction Closed : {{product.is_closed}}</div>
+                <p class="card-text">Current Bid : {%if product.is_there_bider%} There is a bider {%else%} None {%endif%}</p>
+                {%if product.can_close %}
+                  <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
+                {% endif %}
               {%endif%}
               <a href="{% url 'seller/home' %}" class="btn btn-secondary">Back</a>
             </div>

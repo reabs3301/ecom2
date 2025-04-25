@@ -40,8 +40,10 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">price : {{product.price}}</p>
-                            <a href="{% url 'detail' product.id 0 %}" class="btn btn-primary">View Details</a>
+                            <!-- <a href="{% url 'detail' product.id 0 %}" class="btn btn-primary">View Details</a> -->
+                            {% if product.type == 0 %}
                             <a href="{% url 'delete_from_pannier' product.id %}"><button type="button" class="btn btn-outline-danger">delete from pannier</button></a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

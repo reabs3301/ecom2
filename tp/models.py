@@ -31,10 +31,10 @@ class Client(User):
         return self.auction_panier.all()
 
 
-    def clear_panier(self, panier=None):
-        if panier is None:
-            panier = self.get_panier_items()
-        panier.delete()
+    def clear_all_panier_items(self):
+        self.panier.all().delete()
+        self.auction_panier.all().delete()
+        self.save()
 
 class Seller(User):
 
@@ -77,6 +77,10 @@ class Product(models.Model):
         except cls.DoesNotExist:
             return None
         
+    def is_deleted(self):
+        return self.get_by_id(self.id) is None
+        
+
 class SellProduct(Product):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='sell_products')
     quantite = models.IntegerField()
@@ -89,10 +93,10 @@ class SellProduct(Product):
 
 
 class AuctionProduct(Product):
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='auction_products')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='auction_products', null=True, blank=True)
     best_bider = models.ForeignKey(Client, on_delete=models.CASCADE, default=None, null=True, related_name='won_auctions')
     biders = models.ManyToManyField(Client, related_name='bids')
-
+    closed = models.BooleanField(default=False)
     
     @staticmethod
     def create(_name, _price, _categorie, _image, _description, _seller):
@@ -113,6 +117,11 @@ class AuctionProduct(Product):
     
     def is_there_bider(self):
         return self.best_bider is not None
+    
+    def close(self):
+        self.closed = True
+        self.save()
+        
     
 
 class PanierItem(models.Model):
