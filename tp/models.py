@@ -86,7 +86,7 @@ class SellProduct(Product):
 
 class AuctionProduct(Product):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='auction_products')
-    best_bider = models.ForeignKey(Client, on_delete=models.CASCADE, default=None, null=True)
+    best_bider = models.ForeignKey(Client, on_delete=models.CASCADE, default=None, null=True, related_name='won_auctions')
     biders = models.ManyToManyField(Client, related_name='bids')
 
     
