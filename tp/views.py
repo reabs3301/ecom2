@@ -327,7 +327,6 @@ def searching(request):
 
     # print(products)    
     return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
-
         
 
 def add_view(request):
@@ -389,7 +388,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
-def generate_bill_pdf(product_list, total_amount, filename):
+"""def generate_bill_pdf(product_list, total_amount, filename):
     pdf = canvas.Canvas(filename, pagesize=letter)
     pdf.setFont("Helvetica", 12)
 
@@ -406,7 +405,90 @@ def generate_bill_pdf(product_list, total_amount, filename):
 
     pdf.save()
     print(f"Bill saved as {filename}")
+"""
 
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from datetime import datetime
+from reportlab.lib.units import inch
+
+def generate_bill_pdf(product_list, total_amount, filename):
+    pdf = canvas.Canvas(filename, pagesize=letter)
+    
+    # Set up beautiful colors
+    primary_color = colors.HexColor("#3498db")  # Blue
+    secondary_color = colors.HexColor("#2c3e50")  # Dark blue
+    accent_color = colors.HexColor("#e74c3c")  # Red
+    
+    # Draw beautiful header with rectangle
+    pdf.setFillColor(primary_color)
+    pdf.rect(0, 750, letter[0], 50, fill=True, stroke=False)
+    
+    # Add title
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.setFillColor(colors.white)
+    pdf.drawCentredString(letter[0]/2, 765, "BILL RECEIPT")
+    
+    # Reset y position for content
+    y_position = 700
+    
+    # Add date
+    pdf.setFont("Helvetica", 12)
+    pdf.setFillColor(secondary_color)
+    pdf.drawString(72, y_position, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    y_position -= 30
+    
+    # Add company info
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position, "E-Store")
+    y_position -= 15
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(72, y_position, "123 Main Street, Algiers")
+    y_position -= 15
+    pdf.drawString(72, y_position, "Phone: +213 123 456 789")
+    y_position -= 30
+    
+    # Add items purchased header
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.setFillColor(primary_color)
+    pdf.drawString(72, y_position, "ITEMS PURCHASED")
+    y_position -= 25
+    
+    # Draw line separator
+    pdf.setStrokeColor(primary_color)
+    pdf.line(72, y_position, letter[0]-72, y_position)
+    y_position -= 20
+    
+    # Add items
+    pdf.setFont("Helvetica", 12)
+    pdf.setFillColor(secondary_color)
+    
+    for i, product in enumerate(product_list, 1):
+        pdf.drawString(72, y_position, f"{i}. {product.name}")
+        pdf.drawRightString(letter[0]-72, y_position, f"{product.price:,.2f} DZD")
+        y_position -= 20
+    
+    # Draw total separator line
+    pdf.setStrokeColor(accent_color)
+    pdf.line(72, y_position-10, letter[0]-72, y_position-10)
+    y_position -= 20
+    
+    # Add total amount
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.setFillColor(accent_color)
+    pdf.drawString(72, y_position, "TOTAL AMOUNT:")
+    pdf.drawRightString(letter[0]-72, y_position, f"{total_amount:,.2f} DZD")
+    y_position -= 30
+    
+    # Add footer
+    pdf.setFont("Helvetica-Oblique", 10)
+    pdf.setFillColor(colors.blue)
+    pdf.drawCentredString(letter[0]/2, 40, "Thank you for your purchase!")
+    pdf.drawCentredString(letter[0]/2, 25, "For inquiries: contact@abcstore.dz")
+    
+    pdf.save()
+    print(f"Bill saved as {filename}")
 
 def print_view(request):
     return add_page_view(request, int(request.POST['type']))
