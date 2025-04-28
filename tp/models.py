@@ -86,8 +86,8 @@ class SellProduct(Product):
     quantite = models.IntegerField()
 
     @staticmethod
-    def create(_name, _price, _categorie, _image, _description, _quantite, _seller):
-        temp = SellProduct.objects.create(name=_name, price=_price, quantite=_quantite, categorie=_categorie, image=_image, description=_description, seller=_seller)
+    def create(_name, _price, _category, _image, _description, _quantite, _seller):
+        temp = SellProduct.objects.create(name=_name, price=_price, quantite=_quantite, category=_category, image=_image, description=_description, seller=_seller)
         temp.save()
         return temp
 
@@ -99,8 +99,8 @@ class AuctionProduct(Product):
     closed = models.BooleanField(default=False)
     
     @staticmethod
-    def create(_name, _price, _categorie, _image, _description, _seller):
-        temp = AuctionProduct.objects.create(name=_name, price=_price, categorie=_categorie, image=_image, description=_description, seller=_seller)
+    def create(_name, _price, _category, _image, _description, _seller):
+        temp = AuctionProduct.objects.create(name=_name, price=_price, category=_category, image=_image, description=_description, seller=_seller)
         temp.save()
         return temp
     
