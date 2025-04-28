@@ -384,9 +384,9 @@ def payment_page(request , total):
 
             
             for item in product_list:
-                if item.type == SELL and item.quantity == 0 and not item.product.is_deleted():
-                    item.product.delete()
-                elif item.type == AUCTION:
+                # if item.type == SELL and item.quantity == 0 and not item.product.is_deleted():
+                    # item.product.delete()
+                if item.type == AUCTION:
                     item.product.delete()
 
             user.clear_all_panier_items()
