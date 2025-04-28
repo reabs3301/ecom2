@@ -6,33 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>HOME</title>
+
+    <style>
+      .custom-search-btn {
+          background-color:white ;
+          color: #007BFF ;
+          border: 2px solid #007BFF ;
+          /*transition: 0.3s ease-in-out;*/
+      }
+  
+      .custom-search-btn:hover {
+          background-color: #007BFF ;
+          color: white ;
+      }
+    </style>
 </head>
 
 <body style="background-color:#F8F9FA;">
 	<nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #007BFF;">
-        <div class="container-fluid" >
-          <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{% url 'disconnect' %}" style="color: white;">Disconnect</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#" style="color: white;">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'add_page' %}" style="color: white;">ADD</a>
-              </li>
-            </ul>
+    <div class="container-fluid" >
+      <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'disconnect' %}" style="color: white;">Disconnect</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#" style="color: white;">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'add_page' %}" style="color: white;">ADD</a>
+          </li>
+        </ul>
 
-			<form method="POST">
-				{% csrf_token %}
-				<button formaction="{% url 'seller/auction_products' %}" class="btn btn-primary">Auction</button>
-				<button formaction="{% url 'seller/sell_products' %}" class="btn btn-primary">Sell</button>
-			</form>
+        <form method="POST">
+          {% csrf_token %}
+          <button formaction="{% url 'seller/sell_products' %}" class="btn btn-outline-success custom-search-btn">Sell</button>
+          <button formaction="{% url 'seller/auction_products' %}" class="btn btn-outline-success custom-search-btn">Auction</button>
+        </form>
 
             <!-- <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
               {% csrf_token %}
@@ -60,9 +74,9 @@
             </style>
             </form> -->
           
-		</div>
-        </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
 
 	<div class="container mt-5" >
         <h2 class="text-center mb-4">Our Products</h2>

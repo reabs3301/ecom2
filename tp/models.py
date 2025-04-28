@@ -50,7 +50,7 @@ class Product(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
     price = models.FloatField()
-    categorie = models.CharField(max_length=20)
+    category = models.CharField(max_length=20)
     image = models.ImageField(upload_to='media/')
     description = models.CharField(max_length=500)
     class Meta:
@@ -65,10 +65,10 @@ class Product(models.Model):
         return queryset.filter(name__contains=name)   
 
     @classmethod
-    def get_by_categorie(cls, categorie, queryset=None):
+    def get_by_category(cls, category, queryset=None):
         if queryset is None:
             queryset = cls.objects.all()
-        return queryset.filter(categorie=categorie)
+        return queryset.filter(category=category)
     
     @classmethod
     def get_by_id(cls, id):

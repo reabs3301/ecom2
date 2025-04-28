@@ -46,6 +46,15 @@
             border: none;
         }
  
+        .radio-label {
+            margin-left: 5px; /* small margin between button and text */
+        }
+        .radio-option {
+            user-select: none;
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px; /* space between each radio */
+        }
     </style>
 </head>
 <body>
@@ -72,8 +81,14 @@
             </div>
             <label class="form-label">Role</label>
             <div class="mb-3" style="display: flex; justify-content: space-around;">
-                <div><input name="role" type="radio" value=0>Client</input></div>
-                <div><input name="role" type="radio" value=1>Seller</input></div>
+                <div class="radio-option">
+                    <input type="radio" id="option1" name="role" value=0>
+                    <label for="option1" class="radio-label">Client</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="option2" name="role" value=1>
+                    <label for="option2" class="radio-label">Seller</label>
+                </div>
             </div>
 
             {% if type == 'login' %}

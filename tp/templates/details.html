@@ -21,31 +21,9 @@
                 <a class="nav-link active" aria-current="page" href="{% url 'home' %}" style="color: white;">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'add' %}" style="color: white;">ADD</a>
-              </li>
-              <li class="nav-item">
                 <a class="nav-link" href="{% url 'pannier_page' %}" style="color: white;">pannier</a>
               </li>
             </ul>
-            <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
-              {% csrf_token %}
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
-              
-              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
-              <style>
-                .custom-search-btn {
-                    background-color:white ;
-                    color: #007BFF ;
-                    border: 2px solid #007BFF ;
-                    /*transition: 0.3s ease-in-out;*/
-                }
-            
-                .custom-search-btn:hover {
-                    background-color: #007BFF ;
-                    color: white ;
-                }
-            </style>
-            </form>
           </div>
         </div>
     </nav>
@@ -60,12 +38,13 @@
                 <h2>OUT OF STOCK.</h2>
               {% endif %}    
               <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text">categorie : {{product.category}}</p>
+              <p class="card-text">{{ product.description }}</p>
               <p class="card-text">price : {{product.price}}</p>
-              <p class="card-text">categorie : {{product.categorie}}</p>
               {% if type == 0 %}              
-              <a href="{% url 'add_to_pannier' product.id %}" class="btn btn-primary">Add</a>
+                <a href="{% url 'add_to_pannier' product.id %}" class="btn btn-primary">Add</a>
               {% elif type == 1 %}
-              <a href="{% url 'auction_page' product.id %}" class="btn btn-primary">Bid</a>
+                <a href="{% url 'auction_page' product.id %}" class="btn btn-primary">Bid</a>
               {%endif%}
               <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
             </div>

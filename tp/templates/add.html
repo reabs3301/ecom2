@@ -40,7 +40,7 @@
                   <button id="hidden-button" type="submit" style="display: none;"></button>
                 </form>
 
-                <form method="POST" action="{% url 'add' %}" enctype="multipart/form-data">
+                <form method="POST" action="{% url 'add' %}" enctype="multipart/form-data" style="gap: 10px;">
                     {% csrf_token %}
                     <input type="hidden" name="type" value="{{ type }}">
 
@@ -56,12 +56,11 @@
                     <label for="image">Image</label>
                     <input type="file" name="image" class="form-control" required>
 
-                    <label for="categorie">Category</label>
-                    <select name="categorie" class="form-control" required>
-                        <option value="electronics">Electronics</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="books">Books</option>
-                        <option value="furniture">Furniture</option>
+                    <label for="category">Category</label>
+                    <select name="category" class="form-control" required>
+                        {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
                     </select>
 
                     {% if type == 0 %}

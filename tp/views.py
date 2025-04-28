@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render , redirect
 from .models import SellProduct, Client, PanierItem, AuctionProduct, Seller, AuctionPanierItem
-from .forms import  productform
 from django.conf import settings
 from django.urls import resolve
 
@@ -17,16 +16,17 @@ AUCTION = BID = 1
 
 CLIENT = 0
 SELLER = 1
+
+categories = ["All", "Electronics", "Clothing", ] 
 class ProductResult:
     def __init__(self, product):
         self.product = product  
         self.id = product.id
         self.name = product.name
         self.price = product.price
-        self.categorie = product.categorie
+        self.category = product.category
         self.image = product.image
         self.description = product.description
-
 
 class AuctionProductResult(ProductResult):
     def __init__(self, product):
@@ -109,14 +109,15 @@ def signup_page(request, username_exists=False):
      return login_signup_page(request, {'type': 'signup', 'username_exists': username_exists})
 
 
-def client_home(request, products=None, type=BUY):
+def client_home(request, products=None, type=BUY, category=categories[0]):
     if products is None:
         products = []
         if type == BUY:
             products = SellProduct.objects.all()
         else:
             products = AuctionProduct.objects.all()
-    return render(request , 'home.html' , {'products' : products, 'type': type})
+    
+    return render(request , 'home.html' , {'products' : products, 'type': type, 'categories': categories, 'category': category})
     
 def seller_home(request, products=None, type=SELL):
     if products is None:
@@ -292,46 +293,61 @@ def delete_from_pannier(request , prod_id):
     return redirect('pannier_page')
 
 
+# def searching(request):
+#     text = request.POST['input']
+#     type = int(request.POST['type'])
+#     if text == '':
+#         return client_home(request, type=type)        
+    
+#     get_by_name_like = lambda type, text, queryset=None: SellProduct.get_by_name_like(text, queryset) if type == BUY else AuctionProduct.get_by_name_like(text, queryset)
+#     get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_categorie(text, queryset) if type == BUY else AuctionProduct.get_by_categorie(text, queryset)
+
+#     if text[0] != ":":
+#         products = get_by_name_like(type, text)
+#         # return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
+#         return client_home(request, products, type)
+    
+#     invalid_search = lambda : render(request , 'search.html' , {'not_passed': True, 'message': f'invalid search: "{text}"'})
+
+#     if not len(text) > 1:
+#         return invalid_search()
+    
+#     slash = text.find('/')
+#     if slash == 1 or slash == len(text) - 1:
+#         return invalid_search()
+
+#     if slash == -1:
+#         categorie = text[1:] 
+#     else:
+#         categorie = text[1:slash]
+#     products = get_by_categorie(type, categorie)
+
+#     if slash != -1:
+#         name = text[slash + 1:]
+#         products = get_by_name_like(type, name, products)
+
+#     # print(products)    
+#     return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
 def searching(request):
     text = request.POST['input']
     type = int(request.POST['type'])
-    if text == '':
-        return client_home(request, type=type)        
-    
+    category = request.POST['category']
+
     get_by_name_like = lambda type, text, queryset=None: SellProduct.get_by_name_like(text, queryset) if type == BUY else AuctionProduct.get_by_name_like(text, queryset)
-    get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_categorie(text, queryset) if type == BUY else AuctionProduct.get_by_categorie(text, queryset)
+    get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_category(text, queryset) if type == BUY else AuctionProduct.get_by_category(text, queryset)
 
-    if text[0] != ":":
-        products = get_by_name_like(type, text)
-        # return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
-        return client_home(request, products, type)
-    
-    invalid_search = lambda : render(request , 'search.html' , {'not_passed': True, 'message': f'invalid search: "{text}"'})
+    products = get_by_name_like(type, text)
+    if category != 'All':
+        products = get_by_categorie(type, category, products)
 
-    if not len(text) > 1:
-        return invalid_search()
-    
-    slash = text.find('/')
-    if slash == 1 or slash == len(text) - 1:
-        return invalid_search()
+    print(text, type, category, products)
 
-    if slash == -1:
-        categorie = text[1:] 
-    else:
-        categorie = text[1:slash]
-    products = get_by_categorie(type, categorie)
+    return client_home(request, products, type, category)
 
-    if slash != -1:
-        name = text[slash + 1:]
-        products = get_by_name_like(type, name, products)
-
-    # print(products)    
-    return render(request , 'search.html' , {'products' : products, 'not_passed': False, 'searched': text, 'type': type})
-        
 
 def add_view(request):
     name = request.POST['name']
-    categorie = request.POST['categorie']
+    category = request.POST['category']
     image = request.FILES['image']
     description = request.POST['description']
     price = int(request.POST['price'])
@@ -340,15 +356,15 @@ def add_view(request):
 
     if type == SELL:
         quantite = int(request.POST['quantite'])
-        SellProduct.create(name, price, categorie, image, description, quantite, seller)
+        SellProduct.create(name, price, category, image, description, quantite, seller)
     else:
-        AuctionProduct.create(name, price, categorie, image, description, seller)
+        AuctionProduct.create(name, price, category, image, description, seller)
 
     return render(request , "add.html" , {'message' : 'product added successfully'})
 
 
 def add_page_view(request, type=SELL):
-    return render(request , 'add.html', {'type': type})
+    return render(request , 'add.html', {'type': type, 'categories': categories})
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
