@@ -364,7 +364,7 @@ def add_view(request):
 
 
 def add_page_view(request, type=SELL):
-    return render(request , 'add.html', {'type': type, 'categories': categories})
+    return render(request , 'add.html', {'type': type, 'categories': categories[1:]})
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -384,9 +384,9 @@ def payment_page(request , total):
 
             
             for item in product_list:
-                if item.type == SELL and item.quantity == 0 and not item.product.is_deleted():
-                    item.product.delete()
-                elif item.type == AUCTION:
+                # if item.type == SELL and item.quantity == 0 and not item.product.is_deleted():
+                    # item.product.delete()
+                if item.type == AUCTION:
                     item.product.delete()
 
             user.clear_all_panier_items()
@@ -399,29 +399,6 @@ def payment_page(request , total):
         
     return render(request, 'pannier.html')
 
-
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from datetime import datetime
-
-"""def generate_bill_pdf(product_list, total_amount, filename):
-    pdf = canvas.Canvas(filename, pagesize=letter)
-    pdf.setFont("Helvetica", 12)
-
-    pdf.drawString(100, 750, "Bill Receipt")
-    pdf.drawString(100, 730, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    pdf.drawString(100, 710, "Items Purchased:")
-
-    y = 690
-    for product in product_list:
-        pdf.drawString(120, y, f"- {product.name} : {product.price} ")
-        y -= 20
-
-    pdf.drawString(100, y - 20, f"Total Amount: {total_amount} dzd")
-
-    pdf.save()
-    print(f"Bill saved as {filename}")
-"""
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
