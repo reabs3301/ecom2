@@ -1,86 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
-    {%load static%}
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <title>DETAILS</title>
+    <title>Product Details</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .product-card {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 15px;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 123, 255, 0.1);
+        }
+        .product-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #007BFF;">
-        <div class="container-fluid" >
-          <a class="navbar-brand" href="#" style="color: aliceblue;">E-STORE</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg" style="background-color: #007BFF;">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white" href="#">E-STORE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{% url 'home' %}" style="color: white;">Home</a>
-              </li>
-              <!-- <li class="nav-item">
-                <a class="nav-link" href="{% url 'add' %}" style="color: white;">ADD</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'pannier_page' %}" style="color: white;">pannier</a>
-              </li> -->
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'pannier_page' %}">Pannier</a>
+                </li>
             </ul>
-            <!-- <form class="d-flex" role="search" method="POST" action="{% url 'search' %}">
-              {% csrf_token %}
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="input_to_pass">
-              
-              <button class="btn btn-outline-success custom-search-btn" type="submit" >Search</button>
-              <style>
-                .custom-search-btn {
-                    background-color:white ;
-                    color: #007BFF ;
-                    border: 2px solid #007BFF ;
-                    /*transition: 0.3s ease-in-out;*/
-                }
-            
-                .custom-search-btn:hover {
-                    background-color: #007BFF ;
-                    color: white ;
-                }
-            </style>
-            </form> -->
-          </div>
         </div>
-    </nav>
-    <center>
-        
-        <div class="card" style="width: 20rem; margin: 10px; border-color:	#ADD8E6; border-width: 2px;">
-          
-          <div class="card shadow-sm" >
-            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if product.quantite == 0 %}opacity: 0.3;{% endif %}">
-            <div class="card-body">
-              {% if type == 0 and product.quantite == 0 %}
-                <h2>OUT OF STOCK.</h2>
-              {% endif %}    
-              <h5 class="card-title">{{ product.name }}</h5>
-              <p class="card-text">Price : {{product.price}}</p>
-              <p class="card-text">Categorie : {{product.categorie}}</p>
-              <p class="card-text">Description : {{product.description}}</p>
-              {% if type == 1 %}              
-                <div class="card-text">Auction Closed : {{product.is_closed}}</div>
-                <p class="card-text">Current Bid : {%if product.is_there_bider%} There is a bider {%else%} None {%endif%}</p>
-                {%if product.can_close %}
-                  <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-primary">Close</a>
-                {% endif %}
-              {%endif%}
-              <a href="{% url 'seller/home' %}" class="btn btn-secondary">Back</a>
-            </div>
-          </div>
+    </div>
+</nav>
+
+<!-- Product Details Card -->
+<div class="product-card">
+    <div class="row g-4 align-items-center">
+        <!-- Product Image -->
+        <div class="col-md-5">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" style="{% if product.quantite == 0 %}opacity: 0.4;{% endif %}">
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-7">
+            <h2 class="mb-3">{{ product.name }}</h2>
+
+            {% if type == 0 and product.quantite == 0 %}
+                <div class="alert alert-danger" role="alert">
+                    OUT OF STOCK
+                </div>
+            {% endif %}
+
+            <p><strong>Category:</strong> {{ product.category }}</p>
+            <p><strong>Description:</strong> {{ product.description }}</p>
+            <p class="fs-4"><strong>Price:</strong> {{ product.price }}</p>
+
+            {% if type == 1 %}
+                <p><strong>Auction Closed:</strong> {{ product.is_closed }}</p>
+                <p><strong>Current Bid:</strong> {% if product.is_there_bider %}There is a bidder{% else %}None{% endif %}</p>
+            {% endif %}
+
+            <div class="d-flex gap-3 mt-4">
                 
-            
+                {% if type == 1 %}
+                    {% if product.can_close %}
+                        <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-danger btn-lg">Close Auction</a>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'seller/home' %}" class="btn btn-secondary btn-lg">Back</a>
+            </div>
         </div>
-    </center>
+    </div>
+</div>
 
-    
-    
-
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"> </script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
