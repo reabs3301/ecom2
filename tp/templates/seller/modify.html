@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'my_css/product_modify.css' %}">
+  <title>Add Product</title>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg" style="background-color: #007BFF;">
+  <div class="container-fluid">
+    <a class="navbar-brand text-white" href="#">E-STORE</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Add Product Form -->
+<div class="add-product-card">
+  <h2 class="text-center mb-4">Modify a Product</h2>
+
+  <!-- Choose Type -->
+  <!-- <form action="{% url 'print' %}" method="POST" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="type" class="form-label">Select Type</label>
+      <select onchange="document.getElementById('hidden-button').click();" name="type" class="form-select">
+        <option {% if type == 0 %} selected {% endif %} value="0">Sell</option>
+        <option {% if type == 1 %} selected {% endif %} value="1">Auction</option>
+      </select>
+    </div>
+    <button id="hidden-button" type="submit" style="display: none;"></button>
+  </form> -->
+
+  <!-- Product Info Form -->
+  <form method="POST" action="{% url 'seller/modify' product.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="type" value="{{ type }}">
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Product Name</label>
+      <input type="text" name="name" class="form-control" required value="{{ product.name }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Price</label>
+      <input type="number" name="price" class="form-control" required value="{{ product.price }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="3" required>{{ product.description }}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="image" class="form-label">Image</label>
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-thumbnail mb-2" style="width: fit-content;">
+      <input type="file" name="image" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label for="category" class="form-label">Category</label>
+      <select name="category" class="form-select" required>
+        {% for category in categories %}
+          <option {%if product.category == category%} selected {%endif%} value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="quantity" class="form-label">Quantity</label>
+      <input type="number" name="quantity" class="form-control" required value="{{ product.quantity }}">
+    </div>
+
+    <div class="btn-group">
+      <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 7px;">Submit</button>
+      <a href="{% url 'seller/home' %}" class="btn btn-secondary btn-lg" style="border-radius: 7px;">Go Back</a>
+    </div>
+
+  </form>
+
+  {% if message %}
+  <div class="alert alert-info text-center mt-3">
+    {{ message }}
+  </div>
+  {% endif %}
+
+</div>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

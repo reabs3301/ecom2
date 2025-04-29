@@ -77,17 +77,21 @@ class Product(models.Model):
         except cls.DoesNotExist:
             return None
         
+    @classmethod
+    def get_all(cls):
+        return cls.objects.all() 
+
     def is_deleted(self):
         return self.get_by_id(self.id) is None
         
 
 class SellProduct(Product):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='sell_products')
-    quantite = models.IntegerField()
+    quantity = models.IntegerField()
 
     @staticmethod
-    def create(_name, _price, _category, _image, _description, _quantite, _seller):
-        temp = SellProduct.objects.create(name=_name, price=_price, quantite=_quantite, category=_category, image=_image, description=_description, seller=_seller)
+    def create(_name, _price, _category, _image, _description, _quantity, _seller):
+        temp = SellProduct.objects.create(name=_name, price=_price, quantite=_quantity, category=_category, image=_image, description=_description, seller=_seller)
         temp.save()
         return temp
 
@@ -106,7 +110,7 @@ class AuctionProduct(Product):
     
     def add_bider(self, bider, price):
         self.biders.add(bider)
-        if self.price < price:
+        if self.price < price or not self.is_there_bider():
             self.price = price
             self.best_bider = bider
             self.save()

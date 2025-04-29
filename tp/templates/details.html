@@ -74,8 +74,8 @@
             <div class="d-flex gap-3 mt-4">
                 {% if type == 0 %}
                     <a href="{% url 'add_to_pannier' product.id %}" class="btn btn-primary btn-lg">Add to Cart</a>
-                {% elif type == 1 %}
-                    <a href="{% url 'auction_page' product.id %}" class="btn btn-primary btn-lg">Bid Now</a>
+                {% elif type == 1 and product.can_bid%}
+                    <a href="{% url 'auction_page' product.id %}" class="btn btn-primary btn-lg">Bid</a>
                 {% endif %}
                 <a href="{% url 'home' %}" class="btn btn-secondary btn-lg">Back</a>
             </div>

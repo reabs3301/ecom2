@@ -71,17 +71,17 @@
             {% for product in products %}
                 <div class="col-md-4 mb-4" >
                     <div class="card shadow-sm" >
-                      <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if type == 0 and product.quantite == 0 %} opacity: 0.3; {% endif %}">
+                      <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover; {% if type == 0 and product.quantity == 0 %} opacity: 0.3; {% endif %}">
                       <div class="card-body">
-                        {% if type == 0 and product.quantite == 0 %}
+                        {% if type == 0 and product.quantity == 0 %}
                           <h2>OUT OF STOCK.</h2>
                         {% endif %}    
                         <h5 class="card-title">{{ product.name }}</h5>
                         <div class="card-text">Price : {{product.price}}</div>
                         <div class="card-text">Category : {{product.category}}</div>
                         {% if type == 0 %}
-                          <div class="card-text">Quantity : {{product.quantite}}</div>
-                        {% elif type == 1 %}
+                          <div class="card-text">Quantity : {{product.quantity}}</div>
+                        {% elif type == 1 and product.can_bid %}
                           <a href="{% url 'auction_page' product.id %}" class="btn btn-primary">Bid</a>
                         {% endif %}
                         <a href="{% url 'detail' product.id type %}" class="btn btn-primary">View Details</a>

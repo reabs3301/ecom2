@@ -38,12 +38,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'pannier_page' %}">Pannier</a>
-                </li>
+              <li class="nav-item">
+                <a class="nav-link active text-white" aria-current="page" href="{% url 'seller/home' %}" style="color: white;">Home</a>
+              </li>
             </ul>
         </div>
     </div>
@@ -68,6 +65,9 @@
             {% endif %}
 
             <p><strong>Category:</strong> {{ product.category }}</p>
+            {% if type == 0 %}
+                <p><strong>Quantity:</strong> {{ product.quantity }}</p>
+            {% endif %}
             <p><strong>Description:</strong> {{ product.description }}</p>
             <p class="fs-4"><strong>Price:</strong> {{ product.price }}</p>
 
@@ -77,13 +77,12 @@
             {% endif %}
 
             <div class="d-flex gap-3 mt-4">
-                
-                {% if type == 1 %}
-                    {% if product.can_close %}
-                        <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-danger btn-lg">Close Auction</a>
-                    {% endif %}
-                {% endif %}
-                <a href="{% url 'seller/home' %}" class="btn btn-secondary btn-lg">Back</a>
+              {% if type == 1 and product.can_close %}
+                <a href="{% url 'seller/close_auction' product.id %}" class="btn btn-danger btn-lg">Close Auction</a>
+              {% elif type == 0 %}
+                <a href="{% url 'seller/modify_page' product.id %}" class="btn btn-warning btn-lg">Modify</a>
+              {% endif %}
+              <a href="{% url 'seller/home' %}" class="btn btn-secondary btn-lg">Back</a>
             </div>
         </div>
     </div>

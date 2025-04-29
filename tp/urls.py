@@ -29,7 +29,10 @@ urlpatterns = [
    path('seller/sell_products_view/', views.seller_sell_products_view , name='seller/sell_products'),
    path('seller/home_view/' , views.seller_home_view , name='seller/home'),
    path('seller/close_auction_view/<int:prod_id>/' , views.seller_close_auction_view , name='seller/close_auction'),
-   path('seller/details_view/<int:prod_id>/<int:type>/', views.seller_details_view , name='seller/details'), 
+   path('seller/details_view/<int:prod_id>/<int:type>/', views.seller_details_view , name='seller/details'),
+   path('seller/modify_page_view/<int:prod_id>', views.seller_modify_page_view , name='seller/modify_page'), 
+   path('seller/modify_view/<int:prod_id>', views.seller_modify_view , name='seller/modify'),
+   
 
    path('print/', views.print_view, name='print'),
    

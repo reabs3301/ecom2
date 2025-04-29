@@ -33,7 +33,8 @@ class AuctionProductResult(ProductResult):
         super().__init__(product)
         self.is_there_bider = product.is_there_bider()
         self.is_closed = product.closed
-        self.can_close = not product.closed and product.is_there_bider
+        self.can_close = not self.is_closed and self.is_there_bider
+        self.can_bid = True
         self.type = AUCTION
 
     @staticmethod
@@ -43,12 +44,14 @@ class AuctionProductResult(ProductResult):
     @staticmethod
     def convert_one(product):
         return AuctionProductResult(product)
+    
+        
 
 class SellProductResult(ProductResult):
     def __init__(self, product):
         super().__init__(product)
         self.type = SELL
-        self.quantity = product.quantite
+        self.quantity = product.quantity
 
     @staticmethod
     def convert_all(products):
@@ -110,13 +113,16 @@ def signup_page(request, username_exists=False):
 
 
 def client_home(request, products=None, type=BUY, category=categories[0]):
-    if products is None:
-        products = []
-        if type == BUY:
-            products = SellProduct.objects.all()
-        else:
-            products = AuctionProduct.objects.all()
-    
+
+    if type == BUY:
+        products = SellProductResult.convert_all(SellProduct.get_all() if products is None else products) 
+    else:
+        products = AuctionProductResult.convert_all(AuctionProduct.get_all() if products is None else products)
+        user = Client.get_by_username(request.session['username'])
+        for product in products:
+            product.can_bid = product.product.can_bid(user)
+            print(product.can_bid)
+            
     return render(request , 'home.html' , {'products' : products, 'type': type, 'categories': categories, 'category': category})
     
 def seller_home(request, products=None, type=SELL):
@@ -259,8 +265,8 @@ product_list = []
 def add_to_pannier_view(request , prod_id ):
     product = SellProduct.get_by_id(prod_id)
 
-    if product.quantite > 0:  
-        product.quantite -= 1
+    if product.quantity > 0:  
+        product.quantity -= 1
         product.save()
 
         PanierItem.create(product, Client.get_by_username(request.session['username']))
@@ -286,7 +292,7 @@ def delete_from_pannier(request , prod_id):
     for item in panier_items:
         product = item.product
         if product.id == prod_id:
-            product.quantite +=1
+            product.quantity +=1
             product.save()
             item.delete()
             break
@@ -337,10 +343,8 @@ def searching(request):
     get_by_categorie = lambda type, text, queryset=None: SellProduct.get_by_category(text, queryset) if type == BUY else AuctionProduct.get_by_category(text, queryset)
 
     products = get_by_name_like(type, text)
-    if category != 'All':
+    if category != 'All': 
         products = get_by_categorie(type, category, products)
-
-    print(text, type, category, products)
 
     return client_home(request, products, type, category)
 
@@ -355,16 +359,36 @@ def add_view(request):
     seller = Seller.get_by_username(request.session['username'])
 
     if type == SELL:
-        quantite = int(request.POST['quantite'])
-        SellProduct.create(name, price, category, image, description, quantite, seller)
+        quantity = int(request.POST['quantity'])
+        product = SellProduct.create(name, price, category, image, description, quantity, seller)
     else:
-        AuctionProduct.create(name, price, category, image, description, seller)
+        product = AuctionProduct.create(name, price, category, image, description, seller)
 
-    return render(request , "add.html" , {'message' : 'product added successfully'})
+    return seller_details_view(request, prod_id=product.id, type=type)
 
 
 def add_page_view(request, type=SELL):
-    return render(request , 'add.html', {'type': type, 'categories': categories[1:]})
+    return render(request , 'seller/add.html', {'type': type, 'categories': categories[1:]})
+
+def seller_modify_page_view(request, prod_id):
+    product = SellProduct.get_by_id(prod_id)
+    return render(request , 'seller/modify.html', {'product': product, 'categories': categories[1:]})
+
+def seller_modify_view(request, prod_id):
+    print('modify view')
+    product = SellProduct.get_by_id(prod_id)
+    product.name = request.POST['name']
+    product.category = request.POST['category']
+    product.price = float(request.POST['price'])
+    product.description = request.POST['description']
+    product.quantity = int(request.POST['quantity'])
+    if 'image' in request.FILES:
+        product.image = request.FILES['image']
+
+    product.save()
+
+
+    return seller_details_view(request, prod_id, SELL)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 

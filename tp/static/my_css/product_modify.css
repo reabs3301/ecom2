@@ -1,0 +1,21 @@
+body {
+	background-color: #f8f9fa;
+}
+.add-product-card {
+	max-width: 600px;
+	margin: 50px auto;
+	padding: 30px;
+	background: white;
+	border-radius: 15px;
+	box-shadow: 0 0 20px rgba(0, 123, 255, 0.1);
+}
+.form-label {
+	font-weight: bold;
+	margin-top: 15px;
+}
+.btn-group {
+	margin-top: 25px;
+	display: flex;
+	gap: 15px;
+	justify-content: center;
+}
